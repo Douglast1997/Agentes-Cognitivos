@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from collections import deque
-
+import math
 from sympy import HeuristicGCDFailed
 
 
@@ -43,8 +43,9 @@ class Graph:
        else:
            HeuristicGain = panda_df[end][start]
 
-       #print(HeuristicGain)
-       return HeuristicGain
+       HeuristicGain = HeuristicGain/25 #Precisa dividir os Kms por 25km/h para obter o tempo gasto
+      
+       return HeuristicGain #Retorna o Tempo gasto
  
     def a_star_algorithm(self, start, stop):
         # In this open_lst is a lisy of nodes which have been visited, but who's 
@@ -94,15 +95,25 @@ class Graph:
                 reconst_path.append(start)
  
                 reconst_path.reverse()
- 
+                
                 print('Caminho: {}'.format(reconst_path))
-                print("Custo Final: {:0.2f}".format(poo[stop]))
+                CustoFinalHoras = math.floor(poo[stop])
+                CustoFinalMinutos = math.floor((poo[stop] - CustoFinalHoras)*60)
+                CustoFinalSegundos = (((poo[stop] - CustoFinalHoras)*60) - CustoFinalMinutos)*60
+                
+                if CustoFinalHoras == 0:
+                    print("Custo Final - Tempo do trájeto mais rápido é de: {:0.2f} Minuto(s) e {:0.2f} Segundo(s)".format(CustoFinalMinutos,CustoFinalSegundos))
+                else:
+                    print("Custo Final - Tempo do trájeto mais rápido é de: {:0.2f} Hora(s) e {:0.2f} Minuto(s) e {:0.2f} Segundo(s)".format(CustoFinalHoras,CustoFinalMinutos,CustoFinalSegundos))
+
                 return reconst_path
  
             # for all the neighbors of the current node do
             for (m, weight) in self.get_neighbors(n):
               # if the current node is not presentin both open_lst and closed_lst
                 # add it to open_lst and note n as it's par
+
+                weight = weight/25 #Necessário dividir o peso em Km pela velocidade km/h para obter o custo em Horas.
                 if m not in open_lst and m not in closed_lst:
                     open_lst.add(m)
                     par[m] = n
@@ -129,19 +140,36 @@ class Graph:
             closed_lst.add(n)
             
             if(IsFirstTime):
-                print("Ponto: {}, Custo: {:0.2f} ".format(start, poo[start] + self.h(start,stop)))
+                #print("Ponto: {}, Custo: {:0.2f} ".format(start, poo[start] + self.h(start,stop)))
+
+                CustoFinalHoras = math.floor(poo[start] + self.h(start,stop))
+                CustoFinalMinutos = math.floor((poo[start] + self.h(start,stop) - CustoFinalHoras)*60)
+                CustoFinalSegundos = (((poo[start] + self.h(start,stop) - CustoFinalHoras)*60) - CustoFinalMinutos)*60
+                
+                if CustoFinalHoras == 0:
+                    print("Ponto: {}, Custo: - Tempo do trájeto mais rápido é de: {:0.2f} Minuto(s) e {:0.2f} Segundo(s)".format(start,CustoFinalMinutos,CustoFinalSegundos))
+                else:
+                    print("Ponto: {}, Custo: - Tempo do trájeto mais rápido é de: {:0.2f} Hora(s) e {:0.2f} Minuto(s) e {:0.2f} Segundo(s)".format(start,CustoFinalHoras,CustoFinalMinutos,CustoFinalSegundos))
+
                 print("_____________________________________________________________________")
                 IsFirstTime = False
 
             print("Fronteira: {}".format(open_lst))
             openToList = list(open_lst)
             for i in range(len(openToList)):
-                print("Ponto: {}, Custo: {:0.2f} ".format(openToList[i], poo[openToList[i]] + self.h(openToList[i],stop)))
+                #print("Ponto: {}, Custo: {:0.2f} ".format(openToList[i], poo[openToList[i]] + self.h(openToList[i],stop)))
+
+                CustoFinalHoras = math.floor(poo[openToList[i]] + self.h(openToList[i],stop))
+                CustoFinalMinutos = math.floor((poo[openToList[i]] + self.h(openToList[i],stop) - CustoFinalHoras)*60)
+                CustoFinalSegundos = (((poo[openToList[i]] + self.h(openToList[i],stop) - CustoFinalHoras)*60) - CustoFinalMinutos)*60
+                
+                if CustoFinalHoras == 0:
+                    print("Ponto: {}, Custo: - Tempo do trájeto mais rápido é de: {:0.2f} Minuto(s) e {:0.2f} Segundo(s)".format(openToList[i],CustoFinalMinutos,CustoFinalSegundos))
+                else:
+                    print("Ponto: {}, Custo: - Tempo do trájeto mais rápido é de: {:0.2f} Hora(s) e {:0.2f} Minuto(s) e {:0.2f} Segundo(s)".format(openToList[i],CustoFinalHoras,CustoFinalMinutos,CustoFinalSegundos))
 
             print("_____________________________________________________________________")
 
-
- 
         print('Path does not exist!')
         return None
 
