@@ -7,13 +7,13 @@ from sympy import HeuristicGCDFailed
 
 class Graph:
     def __init__(self, adjac_lis):
-        self.adjac_lis = adjac_lis
+        self.adjac_lis = adjac_lis #Inicializa a lista de adjacências
  
     def get_neighbors(self, v):
-        return self.adjac_lis[v]
+        return self.adjac_lis[v] #Retorna a lista de vizinhos
 
  
-    # This is heuristic function which is having equal values for all nodes
+    # Essa é a função de Heuristica que foi definida como a distância direta entre duas linhas de trêm.
     def h(self, start,end):
        DirectDistances = np.array([[0, 10, 18, 24.8, 36.4, 38.8, 35.8, 25.4, 17.6, 9.1, 16.7, 27.3, 27.6, 29.8], 
        [-1, 0, 8.5, 14.8, 26.2, 29.1, 26.1, 17.3, 10, 3.5, 15.5, 20.9, 19.1, 21.8],
@@ -31,64 +31,72 @@ class Graph:
        [-1, -1, -1, -1, -1,-1, -1, -1, -1, -1, -1, -1, -1, 0]])
 
        panda_df = pd.DataFrame(data = DirectDistances[0:, 0:],
-       index = ['E' + str(i + 1) 
+       index = ['E' + str(i + 1)  #Labels E1 até E14 do dataframe
        for i in range(DirectDistances.shape[0])],
-       columns = ['E' + str(i + 1) 
+       columns = ['E' + str(i + 1) #Labels E1 até E14 do dataframe
        for i in range(DirectDistances.shape[1])])
-       #print("Começo: {}".format(start))
-       #print("Final: {}".format(end))
+       
     
-       if panda_df[end][start] == -1:
+       if panda_df[end][start] == -1: #Pega o inverso que é a mesma distância
            HeuristicGain = panda_df[start][end]
        else:
            HeuristicGain = panda_df[end][start]
 
        HeuristicGain = HeuristicGain/25 #Precisa dividir os Kms por 25km/h para obter o tempo gasto
       
-       return HeuristicGain #Retorna o Tempo gasto
+       return HeuristicGain #Retorna o custo da função Heuristica que é Tempo gasto
  
     def a_star_algorithm(self, start, stop):
-        # In this open_lst is a lisy of nodes which have been visited, but who's 
-        # neighbours haven't all been always inspected, It starts off with the start 
-  #node
-        # And closed_lst is a list of nodes which have been visited
-        # and who's neighbors have been always inspected
+        """Neste open_lst está uma lista de nós que foram visitados, que é a fronteira,
+        mas cujos vizinhos nem sempre foram inspecionados, começam com
+        o nó inicial.
+        
+        Closed_lst é uma lista de nós que foram visitados
+        e cujos vizinhos sempre foram inspecionados.
+        O Closed_lst é necessário para que os filhos não retorne para o pai."""
+        
         IsFirstTime = True
-        open_lst = set([start])
+        open_lst = set([start]) #Coloca o Nó incial na fronteira
         print("Fronteira: {}".format(open_lst))
 
         closed_lst = set([])
  
-        # poo has present distances from start to all other nodes
-        # the default value is +infinity
+        # A variável poo tem distâncias/tempo de trajeto presentes desde o início até todos os outros nós
+        # O valor default é +infinito
         poo = {}
-        poo[start] = 0
+        poo[start] = 0 #Definido g(n)
  
-        # par contains an adjac mapping of all nodes
+        # A variável par contém um mapeamento adjacente de todos os nós
         par = {}
-        par[start] = start
+        par[start] = start #Será utilizada como a condição de parada para reconstruir a lista
  
         
-
         while len(open_lst) > 0:
             n = None
  
-            # it will find a node with the lowest value of f() -
+            #Buscando um nó com o menor valor de custo;
             for v in open_lst:
+                #Verificando se g(v) + h(v) < g(n) + h(n)
                 if n == None or poo[v] + self.h(v,stop) < poo[n] + self.h(n,stop):
                     n = v;
 
 
             if n == None:
-                print('Path does not exist!')
+                print('O caminho não existe!')
                 return None
  
-            # if the current node is the stop
-            # then we start again from start
+            # Se o nó atual é a nó final
+            # então começamos a Reconstruir o caminho de novo do início
             if n == stop:
                 reconst_path = []
- 
+
                 while par[n] != n:
+                    #Busca quem é o pai do nó analisado e só termina o loop quando par[start] = start
+
+                    #print("n: {}".format(n))
+                    #print("par[{}]: {}".format(n,par[n]))
+                    
+
                     reconst_path.append(n)
                     n = par[n]
  
@@ -97,6 +105,8 @@ class Graph:
                 reconst_path.reverse()
                 
                 print('Caminho: {}'.format(reconst_path))
+                #print('Custo Final: {}'.format(poo[stop]))
+                
                 CustoFinalHoras = math.floor(poo[stop])
                 CustoFinalMinutos = math.floor((poo[stop] - CustoFinalHoras)*60)
                 CustoFinalSegundos = (((poo[stop] - CustoFinalHoras)*60) - CustoFinalMinutos)*60
@@ -108,25 +118,29 @@ class Graph:
 
                 return reconst_path
  
-            # for all the neighbors of the current node do
-            for (m, weight) in self.get_neighbors(n):
-              # if the current node is not presentin both open_lst and closed_lst
-                # add it to open_lst and note n as it's par
-
+            # para todos os vizinhos do nó atual faça
+            for (m, weight) in self.get_neighbors(n): #Obtem todos os vizinhos de n e seu respectivo peso.
+                
                 weight = weight/25 #Necessário dividir o peso em Km pela velocidade km/h para obter o custo em Horas.
+                
+                # se o nó atual não estiver presente nem em Open_lst e closed_lst
+                # adicione-o em open_lst, na fronteira, e definimos n como seu par[m]
                 if m not in open_lst and m not in closed_lst:
-                    open_lst.add(m)
-                    par[m] = n
-                    poo[m] = poo[n] + weight
-                    #print(poo[m])
+                    open_lst.add(m) # Adicionamos na fronteira
+                    par[m] = n   #Define que o pai de m é n.
+                    poo[m] = poo[n] + weight #f(m) é o custo até n mais o peso de m. 
                     
-                # otherwise, check if it's quicker to first visit n, then m
-                # and if it is, update par data and poo data
-                # and if the node was in the closed_lst, move it to open_lst
+                    
+                # caso contrário, verifique se é mais rápido visitar primeiro n, depois m
+                # e se for, atualize os dados par e os dados poo
+                # e se o nó estava no closed_lst, mova-o para open_lst
                 else:
                     if poo[m] > poo[n] + weight:
+                        print("Poo[{}]: {}".format(m,poo[m]))
+                        print("Poo[{}] + {}".format(poo[n],weight))
                         poo[m] = poo[n] + weight
                         par[m] = n
+                        print("Par[{}]: {}".format(m,n))
                         
                         if m in closed_lst:
                             closed_lst.remove(m)
@@ -134,8 +148,8 @@ class Graph:
                             
             
  
-            # remove n from the open_lst, and add it to closed_lst
-            # because all of his neighbors were inspected
+            # remova n do open_lst e adicione-o ao closed_lst
+            # porque todos os seus vizinhos foram inspecionados
             open_lst.remove(n)
             closed_lst.add(n)
             
@@ -170,10 +184,12 @@ class Graph:
 
             print("_____________________________________________________________________")
 
-        print('Path does not exist!')
+        print('O caminho não Existe!')
         return None
 
 adjac_lis = {
+    #Lista de Adjacências criada para representar o grafo das conexões das linhas de trêm. 
+    #Com as distâncias e conexões reais
     'E1': [('E2', 10)],
     'E2': [('E1', 10), ('E3',8.5), ('E9',10), ('E10',3.5)],
     'E3': [('E2', 8.5), ('E4',6.3), ('E9',9.4), ('E13',18.7)],
@@ -193,6 +209,7 @@ adjac_lis = {
 }
 graph1 = Graph(adjac_lis)
 
+
 startStation = input("Digite o ponto de inicío: ")
 endStation = input("Digite o ponto de fim: ")
 
@@ -202,4 +219,4 @@ print("_____________________________________________________________________")
 if IsStationListed:
     graph1.a_star_algorithm(startStation.upper(), endStation.upper())
 else:
-    print("Uma das linhas selecionadas não existe")
+    print("Uma das linhas de trêm selecionadas não existe")
