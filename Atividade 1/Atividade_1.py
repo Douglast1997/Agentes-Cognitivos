@@ -136,11 +136,11 @@ class Graph:
                 # e se o nó estava no closed_lst, mova-o para open_lst
                 else:
                     if poo[m] > poo[n] + weight:
-                        print("Poo[{}]: {}".format(m,poo[m]))
-                        print("Poo[{}] + {}".format(poo[n],weight))
+                        #print("Poo[{}]: {}".format(m,poo[m]))
+                        #print("Poo[{}] + {}".format(poo[n],weight))
                         poo[m] = poo[n] + weight
                         par[m] = n
-                        print("Par[{}]: {}".format(m,n))
+                        #print("Par[{}]: {}".format(m,n))
                         
                         if m in closed_lst:
                             closed_lst.remove(m)
